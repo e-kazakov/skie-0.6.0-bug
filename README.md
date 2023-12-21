@@ -1,17 +1,19 @@
 # SKIE regression issue sample
 
-This sample project demostrates regression in SKIE 0.6.0.
+This sample project demonstrates regression in SKIE 0.6.0.
+
+https://github.com/touchlab/SKIE/issues/51
 
 # Sample Layout
 
 * `kmp` sample KMP library with single `shared` module
 * `ios` Swift Package that 
 
-`make ios` to build XCFramework from shared library and iOS sample project.
+`make ios` to build XCFramework from the shared library and iOS sample project.
 
 # Sample Code
 
-There is single interface in `kmp/shared` module
+There is a single interface in the `kmp/shared` module
 ```kotlin
 interface Storage {
     suspend fun getString(key: String): String?
@@ -29,7 +31,7 @@ public class StorageImpl: Storage {
 
 # SKIE 0.6.0
 
-Run `make ios`. Build will fail with error
+Run `make ios`. The build will fail with an error
 ```
 ...lib/StorageImpl.swift:4:17: error: result of 'getString(key:)' has different optionality than required by protocol 'Storage'
     public func getString(key: String) async throws -> String? {
@@ -42,25 +44,25 @@ shared.Storage:3:10: note: requirement 'getString(key:)' declared here
 ** BUILD FAILED **
 ```
 
-And this is how error looks in Xcode
+This is how the error looks in Xcode
 ![Compilation error](./images/error.png)
 
-Which is a bit weird, since we defined optional return type in Kotlin. And even more weird if we navigate to modules header in Xcode and check Swift counterpart.
+Which is a bit weird, since we defined an optional return type in Kotlin. And even more weird if we navigate to the module's header in Xcode and check the Swift counterpart.
 
 ![Header](./images/header.png)
 
 # SKIE 0.5.6
 
-Update SKIE version in `kmp/gradle/libs.versions.toml` to `0.5.6` and run `make ios`. Build will finish successfully
+Update SKIE version in `kmp/gradle/libs.versions.toml` to `0.5.6` and run `make ios`. The build will finish successfully
 ```
 ** BUILD SUCCEEDED **
 ```
 
 # What changed with SKIE 0.6.0
 
-Let's examine what changes about the type from Swift point of view. 
+Let's examine what changes about the type from Swift's point of view. 
 
-First we'll look at header file `kmp/shared/build/XCFrameworks/release/shared.xcframework/ios-arm64/shared.xcframework/Headers/shared.h` to check the type definition provided to Objc/Swift.
+First, we'll look at the header file `kmp/shared/build/XCFrameworks/release/shared.xcframework/ios-arm64/shared.xcframework/Headers/shared.h` to check the type definition provided to Objc/Swift.
 
 Both SKIE `0.6.0` and `0.5.6` have the same
 ```
@@ -116,7 +118,7 @@ There is difference in `completionHandler` parameter type defintions
 * `0.6.0` - `Type: "void (^ _Nonnull)(NSString * _Nullable, NSError * _Nullable)"`
 * `0.5.6` - `Type: "void (^_Nonnull )(NSString * _Nullable_result, NSError * _Nullable)"`
 
-The first argument of block is marked as `_Nullable` in `0.6.0` and `_Nullable_result` in `0.5.6`. But what is the difference and why does it affect Swift code if they both seem to be nullable.
+The first argument of the block is marked as `_Nullable` in `0.6.0` and `_Nullable_result` in `0.5.6`. But what is the difference and why does it affect Swift code if they both seem to be nullable.
 
 > Note that it's marked as `_Nullable_result` in the header
 
@@ -137,4 +139,4 @@ Swift evolution [0297 proposal](https://github.com/apple/swift-evolution/blob/ma
 >
 > `_Nullable_result`. Like `_Nullable`, indicates that a pointer can be null (or `nil`). `_Nullable_result` differs from `_Nullable` only for parameters to completion handler blocks. When the completion handler block's parameters are translated into the result type of an `async` method, the corresponding result will be optional.
 
-And that's exactly why Swift compiler fails the build: to it the signature of async variant of the method changed.
+And that's exactly why the Swift compiler fails the build: to it, the signature of an async variant of the method changed.
